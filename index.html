@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <title>💝 Happy Valentine's Day</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-pink-100 min-h-screen flex items-center justify-center">
+
+  <!-- เพลงพื้นหลัง -->
+  <audio id="bgMusic" loop></audio>
+
+  <div class="bg-white shadow-2xl rounded-3xl p-8 w-full max-w-md text-center relative overflow-hidden">
+    <div class="absolute inset-0 pointer-events-none">
+      <div class="animate-pulse text-pink-300 text-7xl absolute top-4 left-4">❤</div>
+      <div class="animate-pulse text-pink-200 text-5xl absolute bottom-6 right-6">❤</div>
+    </div>
+
+    <h1 class="text-2xl font-bold text-pink-500 mb-4">💝 Happy Valentine's Day</h1>
+
+    <div class="bg-pink-50 rounded-2xl p-6 shadow-inner min-h-[140px] flex flex-col items-center justify-center space-y-2">
+      <p class="text-sm text-pink-400">
+        to <span id="toText"></span>
+      </p>
+      <p id="cardText" class="text-lg text-pink-700">กำลังโหลดข้อความจากลูกค้า...</p>
+    </div>
+
+    <div class="mt-6 space-y-3">
+      <button
+        onclick="toggleMusic()"
+        class="w-full bg-rose-300 hover:bg-rose-400 text-white py-2 rounded-full shadow transition"
+      >
+        🎵 เปิด / ปิด เพลง
+      </button>
+     <p class="text-sm text-gray-400">
+       from <span id="customerName"></span>
+      </p>
+    </div>
+
+    <p id="error" class="text-xs text-red-400 mt-4"></p>
+  </div>
+
+  <!-- SCRIPT ต้องอยู่ล่างสุด -->
+  <script>
+  /************************
+   * ตั้งค่า
+   ************************/
+  const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSFqWscb3Yr7tpblr-pnre134YC-V2eRPwuhWK2FiVN1q164QiBtxlPA0zGZw8d7sBHrJaUWKppkTqZ/pub?output=csv";
+  const DEFAULT_MUSIC = "https://www.bensound.com/bensound-music/bensound-november.mp3";
+
+  /************************
+   * DOM
+   ************************/
+  const music = document.getElementById("bgMusic");
+  const nameEl = document.getElementById("customerName");
+  const msgEl = document.getElementById("cardText");
+  const toEl = document.getElementById("toText");
+  const errorEl = document.getElementById("error");
+
+  /************************
+   * URL ID
+   ************************/
+  const params = new URLSearchParams(window.location.search);
+  const requestId = (params.get("id") || "").trim().toLowerCase();
+
+  function toggleMusic() {
+    if (!music.src) {
+      music.src = DEFAULT_MUSIC;
+    }
+    if (music.paused) {
+      music.play();
+    } else {
+      music.pause();
+    }
+  }
+
+  if (!requestId) {
+    errorEl.textContent = "ไม่พบ RequestId ในลิงก์";
+  } else {
+    loadData();
+  }
+
+  /************************
+   * CSV Parser
+   ************************/
+  function parseCSV(text) {
+    const rows = [];
+    let row = [];
+    let field = "";
+    let inQuotes = false;
+
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i];
+      const next = text[i + 1];
+
+      if (char === '"' && inQuotes && next === '"') {
+        field += '"';
+        i++;
+      } else if (char === '"') {
+        inQuotes = !inQuotes;
+      } else if (char === "," && !inQuotes) {
+        row.push(field.trim());
+        field = "";
+      } else if ((char === "\n" || char === "\r") && !inQuotes) {
+        if (field || row.length) {
+          row.push(field.trim());
+          rows.push(row);
+        }
+        row = [];
+        field = "";
+      } else {
+        field += char;
+      }
+    }
+
+    if (field || row.length) {
+      row.push(field.trim());
+      rows.push(row);
+    }
+
+    return rows;
+  }
+
+  /************************
+   * โหลดข้อมูล
+   ************************/
+  async function loadData() {
+    try {
+      const res = await fetch(SHEET_CSV_URL);
+      const text = await res.text();
+
+      const data = parseCSV(text);
+      const rows = data.slice(1);
+
+      let found = false;
+
+      for (let cols of rows) {
+        const customerName = cols[0];
+        const message = cols[1];
+        const musicLink = cols[2];
+        const toText = cols[3];
+        const id = (cols[4] || "").replace(/\s/g, "").toLowerCase();
+
+
+        if (id === requestId) {
+          nameEl.textContent = customerName || "ลูกค้าคนพิเศษ";
+          msgEl.innerHTML = (message || "สุขสันต์วันวาเลนไทน์ 💕").replace(/\\n/g, "<br>");
+          toEl.textContent = toText || "ถึงคุณ";
+
+          const song = musicLink && musicLink.length > 5
+            ? musicLink
+            : DEFAULT_MUSIC;
+
+          music.src = song;
+          found = true;
+          break;
+        }
+      }
+
+      if (!found) {
+        errorEl.textContent = "ไม่พบข้อมูลสำหรับลิงก์นี้";
+      }
+
+    } catch (err) {
+      errorEl.textContent = "โหลดข้อมูลไม่สำเร็จ 💔";
+      console.error(err);
+    }
+  }
+  </script>
+</body>
+</html>
