@@ -34,19 +34,52 @@
       <p class="text-sm text-pink-400">
         to <span id="toText"></span>
       </p>
-      <p id="cardText" class="text-lg text-pink-700">กำลังโหลดข้อความจากลูกค้า...</p>
+      <p id="cardText" class="text-lg text-pink-700">กำลังโหลดข้อความจากลูกค้า.../nกำลังโหลดข้อความจากลูกค้า.../nกำลังโหลดข้อความจากลูกค้า...</p>
     </div>
 
     <div class="mt-6 space-y-3">
-      <button id="musicBtn"
-        onclick="toggleMusic()"
-        class="w-full bg-gray-300 hover:bg-gray-400 text-white py-2 rounded-full shadow transition">
-        ⏸️ ปิด เพลง
-      </button>
+      <div class="mt-6 space-y-3">
 
-      <p class="text-sm text-gray-400">
-        from <span id="customerName"></span>
-      </p>
+  <!-- Music Player -->
+
+<div class="bg-transparent p-3 w-full max-w-md text-center">
+
+  <!-- แถบสถานะ -->
+  <div class="flex items-center justify-between text-pink-400 text-xs">
+    <span>🎵 เพลง</span>
+    <span id="timeText">0:00</span>
+  </div>
+
+  <!-- Progress Bar -->
+  <input
+    id="progressBar"
+    type="range"
+    value="0"
+    class="w-full h-1 accent-pink-400 cursor-pointer"
+  />
+
+  <!-- Controls -->
+  <div class="flex justify-center mt-2">
+
+    <!-- Play / Pause -->
+    <button
+      id="musicBtn"
+      onclick="toggleMusic()"
+      class="w-10 h-10 rounded-full bg-rose-300 hover:bg-rose-400 text-white flex items-center justify-center shadow transition text-lg"
+    >
+      ▶
+    </button>
+
+  </div>
+</div>
+
+
+  <p class="text-sm text-gray-400">
+    from <span id="customerName"></span>
+  </p>
+</div>
+
+
     </div>
 
     <p id="error" class="text-xs text-gray-200 mt-4"></p>
@@ -81,6 +114,33 @@
   const musicBtn = document.getElementById("musicBtn");
   const versionTag = document.getElementById("versionTag");
 
+  const progressBar = document.getElementById("progressBar");
+const timeText = document.getElementById("timeText");
+
+// อัปเดตเส้นตอนเพลงเล่น
+music.addEventListener("timeupdate", () => {
+  if (!music.duration) return;
+
+  const percent = (music.currentTime / music.duration) * 100;
+  progressBar.value = percent;
+
+  const mins = Math.floor(music.currentTime / 60);
+  const secs = Math.floor(music.currentTime % 60)
+    .toString()
+    .padStart(2, "0");
+
+  timeText.textContent = `${mins}:${secs}`;
+});
+
+// ลากเส้นเพื่อเลื่อนเพลง
+progressBar.addEventListener("input", () => {
+  if (!music.duration) return;
+
+  const seekTime = (progressBar.value / 100) * music.duration;
+  music.currentTime = seekTime;
+});
+
+
   /************************
    * URL ID
    ************************/
@@ -102,34 +162,31 @@ function enterCard() {
   // เปลี่ยนปุ่มเป็นโหมดเล่น
   musicBtn.classList.remove("bg-gray-300", "hover:bg-gray-400");
   musicBtn.classList.add("bg-rose-300", "hover:bg-rose-400");
-  musicBtn.textContent = "🎵 เปิด เพลง";
+  musicBtn.textContent = "⏸" ;
 
   // ซ่อนหน้า Welcome
   document.getElementById("welcomeScreen").style.display = "none";
 }
     
   function toggleMusic() {
-    if (!musicSource.src) {
-      musicSource.src = DEFAULT_MUSIC;
-      music.load();
-    }
-
-    if (music.paused) {
-      music.play();
-
-      // โหมดกำลังเล่น = ชมพู
-      musicBtn.classList.remove("bg-gray-300", "hover:bg-gray-400");
-      musicBtn.classList.add("bg-rose-300", "hover:bg-rose-400");
-      musicBtn.textContent = "🎵 เปิด เพลง";
-    } else {
-      music.pause();
-
-      // โหมดหยุด = เทา
-      musicBtn.classList.remove("bg-rose-300", "hover:bg-rose-400");
-      musicBtn.classList.add("bg-gray-300", "hover:bg-gray-400");
-      musicBtn.textContent = "⏸️ ปิด เพลง";
-    }
+  if (!musicSource.src) {
+    musicSource.src = DEFAULT_MUSIC;
+    music.load();
   }
+
+  if (music.paused) {
+    music.play();
+    musicBtn.textContent = "⏸";
+    musicBtn.classList.remove("bg-rose-300");
+    musicBtn.classList.add("bg-gray-400");
+  } else {
+    music.pause();
+    musicBtn.textContent = "▶";
+    musicBtn.classList.remove("bg-gray-400");
+    musicBtn.classList.add("bg-rose-300");
+  }
+}
+
 
   if (!requestId) {
     errorEl.textContent = "ไม่พบ RequestId ในลิงก์";
