@@ -62,13 +62,28 @@
   <div class="flex justify-center mt-2">
 
     <!-- Play / Pause -->
-    <button
-      id="musicBtn"
-      onclick="toggleMusic()"
-      class="w-10 h-10 rounded-full bg-rose-300 hover:bg-rose-400 text-white flex items-center justify-center shadow transition text-lg"
-    >
-      ▶
-    </button>
+  <button
+  id="musicBtn"
+  onclick="toggleMusic()"
+  class="w-14 h-14 flex items-center justify-center bg-transparent shadow-none ring-0 outline-none border-0"
+>
+
+  <!-- PLAY -->
+  <svg id="playIcon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"
+       class="w-8 h-8">
+    <circle cx="50" cy="50" r="48" fill="#F9A8D4"/>
+    <polygon points="40,30 72,50 40,70" fill="white"/>
+  </svg>
+
+  <!-- PAUSE -->
+  <svg id="pauseIcon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"
+       class="w-8 h-8 hidden">
+    <circle cx="50" cy="50" r="48" fill="#F9A8D4"/>
+    <rect x="35" y="28" width="10" height="44" rx="3" fill="white"/>
+    <rect x="55" y="28" width="10" height="44" rx="3" fill="white"/>
+  </svg>
+</button>
+
 
   </div>
 </div>
@@ -116,6 +131,9 @@
 
   const progressBar = document.getElementById("progressBar");
 const timeText = document.getElementById("timeText");
+const playIcon = document.getElementById("playIcon");
+const pauseIcon = document.getElementById("pauseIcon");
+
 
 // อัปเดตเส้นตอนเพลงเล่น
 music.addEventListener("timeupdate", () => {
@@ -151,24 +169,25 @@ progressBar.addEventListener("input", () => {
    * ปุ่มเปิด/ปิดเพลง
    ************************/
 function enterCard() {
-  // เปิดเพลง
+  // ตั้งเพลงถ้ายังไม่มี
   if (!musicSource.src) {
     musicSource.src = DEFAULT_MUSIC;
     music.load();
   }
 
+  // เล่นเพลง
   music.play();
 
-  // เปลี่ยนปุ่มเป็นโหมดเล่น
-  musicBtn.classList.remove("bg-gray-300", "hover:bg-gray-400");
-  musicBtn.classList.add("bg-rose-300", "hover:bg-rose-400");
-  musicBtn.textContent = "⏸" ;
+  // แสดง PAUSE / ซ่อน PLAY
+  playIcon.classList.add("hidden");
+  pauseIcon.classList.remove("hidden");
 
   // ซ่อนหน้า Welcome
   document.getElementById("welcomeScreen").style.display = "none";
 }
+
     
-  function toggleMusic() {
+function toggleMusic() {
   if (!musicSource.src) {
     musicSource.src = DEFAULT_MUSIC;
     music.load();
@@ -176,16 +195,15 @@ function enterCard() {
 
   if (music.paused) {
     music.play();
-    musicBtn.textContent = "⏸";
-    musicBtn.classList.remove("bg-rose-300");
-    musicBtn.classList.add("bg-gray-400");
+    playIcon.classList.add("hidden");
+    pauseIcon.classList.remove("hidden");
   } else {
     music.pause();
-    musicBtn.textContent = "▶";
-    musicBtn.classList.remove("bg-gray-400");
-    musicBtn.classList.add("bg-rose-300");
+    pauseIcon.classList.add("hidden");
+    playIcon.classList.remove("hidden");
   }
 }
+
 
 
   if (!requestId) {
