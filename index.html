@@ -9,7 +9,10 @@
 <body class="bg-pink-100 min-h-screen flex items-center justify-center">
 
   <!-- เพลงพื้นหลัง -->
-  <audio id="bgMusic" loop></audio>
+  <audio id="bgMusic" loop>
+  <source id="musicSource" type="audio/mpeg">
+</audio>
+
 
   <div class="bg-white shadow-2xl rounded-3xl p-8 w-full max-w-md text-center relative overflow-hidden">
     <div class="absolute inset-0 pointer-events-none">
@@ -27,14 +30,12 @@
     </div>
 
     <div class="mt-6 space-y-3">
-      <!--
-      <button
+      <button id="musicBtn"
         onclick="toggleMusic()"
-        class="w-full bg-rose-300 hover:bg-rose-400 text-white py-2 rounded-full shadow transition"
-      >
-        🎵 เปิด / ปิด เพลง
+          class="w-full bg-gray-300 hover:bg-gray-400 text-white py-2 rounded-full shadow transition">
+          ⏸️ ปิด เพลง
       </button>
-      -->
+
      <p class="text-sm text-gray-400">
        from <span id="customerName"></span>
       </p>
@@ -56,10 +57,12 @@
    * DOM
    ************************/
   const music = document.getElementById("bgMusic");
+  const musicSource = document.getElementById("musicSource");
   const nameEl = document.getElementById("customerName");
   const msgEl = document.getElementById("cardText");
   const toEl = document.getElementById("toText");
   const errorEl = document.getElementById("error");
+  const musicBtn = document.getElementById("musicBtn");
 
   /************************
    * URL ID
@@ -68,15 +71,29 @@
   const requestId = (params.get("id") || "").trim().toLowerCase();
 
   function toggleMusic() {
-    if (!music.src) {
-      music.src = DEFAULT_MUSIC;
-    }
-    if (music.paused) {
-      music.play();
-    } else {
-      music.pause();
-    }
+  if (!musicSource.src) {
+    musicSource.src = DEFAULT_MUSIC;
+    music.load();
   }
+
+  if (music.paused) {
+    music.play();
+
+    // โหมดกำลังเล่น = ชมพู
+    musicBtn.classList.remove("bg-gray-300", "hover:bg-gray-400");
+    musicBtn.classList.add("bg-rose-300", "hover:bg-rose-400");
+    musicBtn.textContent = "🎵 เปิด เพลง";
+  } else {
+    music.pause();
+
+    // โหมดหยุด = เทา
+    musicBtn.classList.remove("bg-rose-300", "hover:bg-rose-400");
+    musicBtn.classList.add("bg-gray-300", "hover:bg-gray-400");
+    musicBtn.textContent = "⏸️ ปิด เพลง";
+  }
+  }
+
+    
 
   if (!requestId) {
     errorEl.textContent = "ไม่พบ RequestId ในลิงก์";
@@ -155,7 +172,8 @@
             ? musicLink
             : DEFAULT_MUSIC;
 
-          music.src = song;
+          musicSource.src = song;
+          music.load();
           found = true;
           break;
         }
